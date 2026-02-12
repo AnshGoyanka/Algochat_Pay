@@ -1,0 +1,33 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "AlgoChat Pay"
+    },
+    {
+      "path": "projects/contracts",
+      "name": "Smart Contracts"
+    },
+    {
+      "path": "projects/frontend",
+      "name": "Frontend Dashboard"
+    },
+    {
+      "path": "backend",
+      "name": "Backend API"
+    },
+    {
+      "path": "bot",
+      "name": "WhatsApp Bot"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.pytest_cache": true
+    }
+  }
+}

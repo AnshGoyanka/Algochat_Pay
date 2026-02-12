@@ -1,0 +1,13 @@
+[project]
+type = 'workspace'
+name = 'algochat-pay'
+
+[project.run]
+# Commands to run on `algokit project run`
+build = "algokit project run build --all"
+start = "algokit project run dev --all"
+
+[project.deploy]
+# Deployment configuration
+command = "algokit project deploy"
+environment = ["localnet", "testnet", "mainnet"]
