@@ -7,7 +7,7 @@
 [![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org)
 [![PyTeal](https://img.shields.io/badge/Smart_Contracts-PyTeal-FFD43B?style=for-the-badge&logo=python)](https://pyteal.readthedocs.io)
 
-> **Winner of Algorand Hackathon 2026** | Built by Team Xion
+> Built by Team Xion | Algorand Hackathon 2026
 
 ---
 
@@ -364,8 +364,7 @@ python scripts/final_pitch_export.py
 **Team Xion**  
 Ansh Goyanka – Founder & Lead Developer  
 
-Built for **Algorand Hackathon 2026**  
-🏆 Winner of Future of Finance Track
+Built for **Algorand Hackathon 2026**
 
 ---
 
