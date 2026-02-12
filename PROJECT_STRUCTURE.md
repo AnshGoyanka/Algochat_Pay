@@ -396,4 +396,4 @@ python start.py
 ---
 
 **Built for Hackspiration - Track 1: Future of Finance**  
-**Team NexQora | Powered by Algorand**
+**Team Xion | Powered by Algorand**

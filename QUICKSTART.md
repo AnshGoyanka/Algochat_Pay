@@ -319,4 +319,4 @@ algochat-pay/
 ---
 
 **Built for Hackspiration - Track 1: Future of Finance**  
-**Team NexQora | Campus Wallet on WhatsApp**
+**Team Xion | Campus Wallet on WhatsApp**

@@ -438,8 +438,8 @@ pytest -v
 
 ## 👥 Team
 
-**Team NexQora**  
-Parth Kairamkonda - Team Leader  
+**Team Xion**  
+Ansh Goyanka - Team Leader  
 
 Built for **Algorand Hackathon**
 

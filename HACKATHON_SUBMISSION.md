@@ -113,7 +113,9 @@ docker-compose up -d
 
 ## 📞 Contact
 
-[Add your contact information]
+**Team Xion**  
+Ansh Goyanka - Team Leader  
+Email: support@algochat.app
 
 ---
 
