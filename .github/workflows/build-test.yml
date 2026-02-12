@@ -47,7 +47,7 @@ jobs:
     - name: Check imports and syntax
       run: |
         python -m py_compile backend/main.py
-        python -m py_compile backend/services/*.py
+        find backend/services -name "*.py" -exec python -m py_compile {} \;
         python -m py_compile bot/whatsapp_webhook.py
         echo "✅ Backend syntax check passed"
 

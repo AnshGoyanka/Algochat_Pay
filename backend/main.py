@@ -73,13 +73,15 @@ async def shutdown_event():
     logger.info("Shutting down AlgoChat Pay")
 
 
-@app.geRoot endpoint"""
+@app.get("/")
+async def root():
+    """Root endpoint"""
     return {
         "app": settings.APP_NAME,
         "status": "running",
         "environment": settings.ENVIRONMENT,
         "algorand_network": settings.ALGORAND_NETWORK,
-        "docs": "/docs" if settings.DEBUG else "disabl
+        "docs": "/docs" if settings.DEBUG else "disabled",
         "database": "connected",
         "algorand": "connected"
     }
