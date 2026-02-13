@@ -68,10 +68,10 @@ class PaymentService:
         
         # Log transaction initiation
         event_logger.transaction_initiated(
-            sender_phone, 
-            receiver_phone, 
-            amount, 
-            "SEND"
+            tx_type="SEND",
+            amount=amount,
+            sender_phone=sender_phone,
+            receiver_phone=receiver_phone
         )
         
         # Create transaction record (pending)
@@ -106,7 +106,12 @@ class PaymentService:
             db.commit()
             db.refresh(transaction)
             
-            event_logger.transaction_completed(tx_id, sender_phone, amount)
+            event_logger.transaction_completed(
+                tx_id=tx_id,
+                duration_ms=0,  # Duration tracking can be added later
+                sender_phone=sender_phone,
+                amount=amount
+            )
             logger.info(f"Payment successful: {tx_id}")
             return transaction
             
@@ -115,7 +120,10 @@ class PaymentService:
             transaction.status = TransactionStatus.FAILED
             db.commit()
             
-            event_logger.transaction_failed(str(e), sender_phone)
+            event_logger.transaction_failed(
+                error=str(e),
+                sender_phone=sender_phone
+            )
             logger.error(f"Payment failed: {e}")
             raise
     

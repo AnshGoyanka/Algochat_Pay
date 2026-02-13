@@ -57,15 +57,18 @@ class AlgorandClient:
             Balance in ALGO (not microALGOs)
         """
         try:
-            client = self._get_active_client()
-            account_info = client.account_info(address)
+            account_info = self.algod_client.account_info(address)
             balance_microalgos = account_info.get("amount", 0)
             self.node_fallback.record_success()
             return balance_microalgos / 1_000_000  # Convert to ALGO
         except Exception as e:
             self.node_fallback.record_failure()
             logger.error(f"Failed to get balance for {address}: {e}")
-            raiselgorand wallet
+            raise
+    
+    def create_wallet(self) -> Tuple[str, str, str]:
+        """
+        Create new Algorand wallet
         
         Returns:
             (private_key, wallet_address, mnemonic_phrase)
@@ -76,20 +79,6 @@ class AlgorandClient:
         logger.info(f"Created wallet: {address}")
         return private_key, address, mnemonic_phrase
     
-    def get_balance(self, address: str) -> float:
-        """
-        Get ALGO balance for an address
-        
-        Args:
-            address: Algorand address
-        
-        Returns:
-            Balance in ALGO (not microALGOs)
-        """
-        try:
-            account_info = self.algod_client.account_info(address)
-            balance_microalgos = account_info.get("amount", 0)
-            return balance_microalgos / 1_000_000  # Convert to ALGO
     @with_retry(RetryConfig(max_attempts=3, initial_delay=1.0))
     def send_payment(
         self,
@@ -111,13 +100,11 @@ class AlgorandClient:
             Transaction ID
         """
         try:
-            client = self._get_active_client()
-            
             # Get sender address from private key
             sender_address = account.address_from_private_key(sender_private_key)
             
             # Get suggested params
-            params = client.suggested_params()
+            params = self.algod_client.suggested_params()
             
             # Convert ALGO to microALGOs
             amount_microalgos = int(amount_algo * 1_000_000)
@@ -135,10 +122,10 @@ class AlgorandClient:
             signed_txn = txn.sign(sender_private_key)
             
             # Send transaction
-            tx_id = client.send_transaction(signed_txn)
+            tx_id = self.algod_client.send_transaction(signed_txn)
             
             # Wait for confirmation
-            confirmed_txn = wait_for_confirmation(client, tx_id, 4)
+            confirmed_txn = wait_for_confirmation(self.algod_client, tx_id, 4)
             
             self.node_fallback.record_success()
             logger.info(f"Payment sent: {tx_id} ({amount_algo} ALGO)")
@@ -146,10 +133,6 @@ class AlgorandClient:
             
         except Exception as e:
             self.node_fallback.record_failure()
-            logger.info(f"Payment sent: {tx_id} ({amount_algo} ALGO)")
-            return tx_id
-            
-        except Exception as e:
             logger.error(f"Payment failed: {e}")
             raise
     

@@ -6,7 +6,7 @@ import base64
 import secrets
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from backend.config import settings
 import logging
@@ -29,7 +29,7 @@ class EncryptionService:
         key_material = settings.ENCRYPTION_KEY.encode()
         
         # Use PBKDF2 to derive a valid Fernet key
-        kdf = PBKDF2(
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"algochat_salt_v1",  # Static salt for deterministic key

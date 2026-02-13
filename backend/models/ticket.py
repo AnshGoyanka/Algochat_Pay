@@ -17,7 +17,7 @@ class Ticket(Base):
     ticket_number = Column(String(50), unique=True, nullable=False)
     is_valid = Column(Boolean, default=True)
     is_used = Column(Boolean, default=False)
-    metadata = Column(String(1000))  # JSON metadata
+    ticket_metadata = Column(String(1000))  # JSON metadata (renamed from 'metadata' to avoid SQLAlchemy conflict)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     used_at = Column(DateTime(timezone=True))
     

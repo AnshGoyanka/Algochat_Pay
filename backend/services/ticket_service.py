@@ -63,7 +63,7 @@ class TicketService:
                 owner_address=buyer.wallet_address,
                 asset_id=asset_id,
                 ticket_number=ticket_number,
-                metadata=str(ticket_metadata) if ticket_metadata else None
+                ticket_metadata=str(ticket_metadata) if ticket_metadata else None
             )
             
             db.add(ticket)

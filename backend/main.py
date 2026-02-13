@@ -11,7 +11,7 @@ from backend.database import init_db
 from backend.utils.production_logging import ProductionLogger
 from backend.middleware import LoggingMiddleware, SecurityLoggingMiddleware
 from backend.security.security_utils import RateLimitMiddleware
-from bot.whatsapp_webhook import whatsapp_router
+from bot import whatsapp_router
 from backend.routes import health_router, metrics_router, admin_router, demo_router, freeze_router
 
 # Setup production logging
