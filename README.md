@@ -15,9 +15,9 @@
 
 <div align="center">
 
-**Watch AlgoChat Pay in Action**
+[![Watch AlgoChat Pay Demo](https://img.youtube.com/vi/9t6hP7TJ8V0/maxresdefault.jpg)](https://youtu.be/9t6hP7TJ8V0)
 
-[**▶️ Click to Watch Demo**](demo/AlgoPayChat%20Demo.mp4)
+**[▶️ Watch Full Demo on YouTube](https://youtu.be/9t6hP7TJ8V0)**
 
 *See students split bills, buy NFT tickets, and send ALGO—all through WhatsApp*
 
