@@ -11,7 +11,21 @@
 
 ---
 
-## 🎯 Quick Navigation
+## � Demo Video
+
+<div align="center">
+
+**Watch AlgoChat Pay in Action**
+
+[**▶️ Click to Watch Demo**](demo/AlgoPayChat%20Demo.mp4)
+
+*See students split bills, buy NFT tickets, and send ALGO—all through WhatsApp*
+
+</div>
+
+---
+
+## �🎯 Quick Navigation
 
 | For Judges | For Developers | Documentation |
 |------------|----------------|---------------|
@@ -22,7 +36,7 @@
 
 ## 🚀 Quick Start
 
-### For Judges (Interactive Dashboard)
+### Option 1: For Judges (Interactive Dashboard)
 
 ```bash
 # Terminal 1: Start backend API
@@ -34,14 +48,28 @@ cd projects/frontend && npm install && npm run dev
 # Visit: http://localhost:3000
 ```
 
-### For Developers (Full WhatsApp Bot)
+### Option 2: Full WhatsApp Bot (Docker)
 
 ```bash
 # One-command setup
 docker-compose up -d
-
-# Or manual setup - see PRODUCTION_DEPLOYMENT.md
 ```
+
+### Option 3: WhatsApp Bot with ngrok (Development)
+
+```bash
+# Quick setup with ngrok tunneling
+.\setup_ngrok.ps1   # Windows
+./setup_ngrok.sh    # Mac/Linux
+
+# Or run individually:
+uvicorn backend.main:app --reload
+ngrok http 8000
+
+# Configure Twilio webhook with ngrok URL
+```
+
+📘 **Detailed ngrok guide:** [NGROK_SETUP.md](NGROK_SETUP.md)
 
 ---
 
@@ -191,48 +219,145 @@ AlgoChat-Pay/
 
 ---
 
-## ⚙️ Production Deployment
+## ⚙️ Deployment Guide
 
 ### Prerequisites
 - Python 3.11+
-- PostgreSQL 15+
+- PostgreSQL 15+ (or Neon Postgres serverless)
 - Node.js 18+ (for frontend)
 - Twilio WhatsApp Business API
 - Algorand TestNet access
+- ngrok account (for development/testing)
 
-### Environment Variables
+### Step 1: Environment Setup
+
+Copy `.env.example` to `.env` and configure:
+
 ```bash
+# Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/algochat_db
+
+# Algorand
 ALGORAND_NETWORK=testnet
 ALGORAND_ALGOD_ADDRESS=https://testnet-api.algonode.cloud
-ENCRYPTION_KEY=<32-byte-key>
-TWILIO_ACCOUNT_SID=<your-sid>
-TWILIO_AUTH_TOKEN=<your-token>
+ALGORAND_ALGOD_TOKEN=
+
+# Security
+ENCRYPTION_KEY=<generate-with-secrets.token_urlsafe(32)>
+
+# Twilio WhatsApp
+TWILIO_ACCOUNT_SID=<your-twilio-sid>
+TWILIO_AUTH_TOKEN=<your-twilio-token>
 TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
 ```
 
-### Docker Deployment (Recommended)
+### Step 2: Install Dependencies
+
 ```bash
-docker-compose up -d
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows)
+venv\Scripts\activate
+
+# Activate (Mac/Linux)
+source venv/bin/activate
+
+# Install packages
+pip install -r requirements.txt
 ```
 
-### Manual Setup
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-cd projects/frontend && npm install
+### Step 3: Initialize Database
 
-# 2. Initialize database
+```bash
+# Automatic initialization
 python -c "from backend.database import init_db; init_db()"
 
-# 3. Run backend
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
-
-# 4. Configure Twilio webhook
-# Point to: https://your-domain.com/webhook/whatsapp
+# Or run migrations if using Alembic
+alembic upgrade head
 ```
 
-📚 **Full Guide:** [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md)
+### Step 4: Start Backend Server
+
+```bash
+# Development mode (with auto-reload)
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+
+# Production mode
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+### Step 5: Setup WhatsApp Webhook (with ngrok)
+
+#### Quick Setup (Automated)
+```powershell
+# Windows PowerShell
+.\setup_ngrok.ps1
+
+# Mac/Linux (create setup_ngrok.sh)
+./setup_ngrok.sh
+```
+
+#### Manual Setup
+
+1. **Install ngrok:**
+   ```bash
+   # Windows (via Chocolatey)
+   choco install ngrok
+   
+   # Mac (via Homebrew)
+   brew install ngrok
+   
+   # Or download from https://ngrok.com/download
+   ```
+
+2. **Authenticate ngrok:**
+   ```bash
+   ngrok config add-authtoken YOUR_AUTHTOKEN
+   ```
+
+3. **Start tunnel:**
+   ```bash
+   ngrok http 8000
+   ```
+
+4. **Configure Twilio webhook:**
+   - Copy the **HTTPS** forwarding URL from ngrok (e.g., `https://abc123.ngrok.io`)
+   - Go to [Twilio Console → WhatsApp Sandbox](https://console.twilio.com/us1/develop/sms/settings/whatsapp-sandbox)
+   - Set webhook URL: `https://abc123.ngrok.io/webhook/whatsapp`
+   - Save configuration
+
+5. **Monitor requests:**
+   - View ngrok dashboard: http://localhost:4040
+   - See all webhook requests and responses in real-time
+
+#### Production Deployment (Docker)
+
+```bash
+# Build and run all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f backend
+
+# Stop services
+docker-compose down
+```
+
+### Verification
+
+```bash
+# Test API health
+curl http://localhost:8000/health
+
+# Test WhatsApp (send to Twilio sandbox number)
+Send: "balance"
+Expect: "Your current balance: 0.0 ALGO"
+```
+
+📚 **Detailed Guides:**
+- [NGROK_SETUP.md](NGROK_SETUP.md) - Complete ngrok configuration
+- [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) - Full production deployment
 
 ---
 
@@ -373,11 +498,14 @@ Built for **Algorand Hackathon 2026**
 | Resource | Link |
 |----------|------|
 | 📧 **Email** | support@algochat.app |
+| 🎬 **Demo Video** | [demo/AlgoPayChat Demo.mp4](demo/AlgoPayChat%20Demo.mp4) |
 | 📚 **Documentation** | [HACKATHON_SUBMISSION.md](HACKATHON_SUBMISSION.md) |
 | 🎤 **Demo Guide** | [DEMO_CONTROL_README.md](DEMO_CONTROL_README.md) |
+| 🚀 **ngrok Setup** | [NGROK_SETUP.md](NGROK_SETUP.md) |
 | 🏗️ **Deployment** | [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) |
-| 📁 **project Structure** | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) |
+| 📁 **Project Structure** | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) |
 | 💬 **Smart Contracts** | [projects/contracts/](projects/contracts/) |
+| 📘 **Quick Start** | [QUICKSTART.md](QUICKSTART.md) |
 
 ---
 
