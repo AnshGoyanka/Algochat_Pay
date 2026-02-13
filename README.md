@@ -11,7 +11,7 @@
 
 ---
 
-## � Demo Video
+## Demo Video
 
 <div align="center">
 
