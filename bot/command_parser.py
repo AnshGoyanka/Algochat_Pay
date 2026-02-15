@@ -388,8 +388,8 @@ class CommandParser:
 • `/lock create Trip 500 5 7` - Or use command
 • `/commit 1` - Lock your funds
 • `/status 1` - View commitment status
-• `/commitments` - Your active commitments
-• `/reliability` - Your payment reputation score
+• `my commitments` - Your active commitments
+• `reliability` - Your payment reputation score
 
 🎫 *Event Tickets*
 • `list events` - See all upcoming events

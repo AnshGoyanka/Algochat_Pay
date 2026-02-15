@@ -533,10 +533,13 @@ Tap to copy and send:
 
 💰 `balance`
 📜 `history`
-🎫 `events`
-💝 `funds`
 💸 `my splits`
+🎫 `events`
 🎟️ `my tickets`
+💝 `funds`
+📒 `my contacts`
+🔒 `my commitments`
+⭐ `reliability`
 ❓ `help`
 
 _Reply with any command above!_

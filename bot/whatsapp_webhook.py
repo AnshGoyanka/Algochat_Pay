@@ -1003,7 +1003,7 @@ async def whatsapp_webhook(request: Request, db: Session = Depends(get_db)):
         response_text = whatsapp_bot.process_message(db, from_phone, command_text)
         
         # Detect if we should add buttons (static commands)
-        static_commands = ["help", "balance", "history", "menu", "events", "funds", "my splits", "my tickets"]
+        static_commands = ["help", "balance", "history", "menu", "events", "funds", "my splits", "my tickets", "my contacts", "my commitments", "reliability"]
         should_add_buttons = any(cmd in command_text.lower() for cmd in static_commands)
         
         if should_add_buttons:

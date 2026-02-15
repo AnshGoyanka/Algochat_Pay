@@ -701,7 +701,7 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
         response_text = telegram_bot.process_message(db, chat_id, user_phone, text)
         
         # Add keyboard to response for static commands
-        static_commands = ["help", "balance", "history", "events", "funds", "my splits", "my tickets", "demo stats"]
+        static_commands = ["help", "balance", "history", "menu", "events", "funds", "my splits", "my tickets", "my contacts", "my commitments", "reliability"]
         should_add_keyboard = any(cmd in text.lower() for cmd in static_commands)
         
         if should_add_keyboard:

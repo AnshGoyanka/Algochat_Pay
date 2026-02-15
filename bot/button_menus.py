@@ -8,10 +8,10 @@ from typing import List, Dict, Any
 class ButtonMenus:
     """Button layouts for different menu types"""
     
-    # Main menu buttons (most common actions)
+    # Main menu buttons (most common actions - WhatsApp max 3)
     MAIN_MENU = [
         {"id": "balance", "title": "💰 Balance"},
-        {"id": "history", "title": "📜 History"},
+        {"id": "menu", "title": "📋 Full Menu"},
         {"id": "help", "title": "❓ Help"}
     ]
     
@@ -20,14 +20,18 @@ class ButtonMenus:
         {"id": "list_events", "title": "🎫 Events"},
         {"id": "list_funds", "title": "💝 Fundraisers"},
         {"id": "my_splits", "title": "💸 My Splits"},
-        {"id": "my_tickets", "title": "🎟️ My Tickets"}
+        {"id": "my_tickets", "title": "🎟️ My Tickets"},
+        {"id": "my_contacts", "title": "📒 My Contacts"},
+        {"id": "my commitments", "title": "🔒 Commitments"},
+        {"id": "reliability", "title": "⭐ Reliability"},
+        {"id": "history", "title": "📜 History"}
     ]
     
     # Financial actions
     FINANCIAL_MENU = [
         {"id": "balance", "title": "💰 Check Balance"},
         {"id": "history", "title": "📜 Transaction History"},
-        {"id": "demo_stats", "title": "📊 Demo Stats"}
+        {"id": "my_contacts", "title": "📒 My Contacts"}
     ]
     
     # All commands combined (for help screen)
