@@ -78,5 +78,31 @@ def init_db():
     Initialize database tables
     Call this on application startup
     """
-    from backend.models import user, transaction, fund, ticket, event, split, merchant
+    from backend.models import user, transaction, fund, ticket, event, split, merchant, contact
     Base.metadata.create_all(bind=engine)
+    
+    # Run lightweight migrations for columns added to existing tables
+    _run_migrations()
+
+
+def _run_migrations():
+    """Add missing columns to existing tables (lightweight migration)"""
+    migrations = [
+        # (table, column, SQL to add it)
+        ("users", "display_name", "ALTER TABLE users ADD COLUMN display_name VARCHAR(50)"),
+    ]
+    
+    for table, column, sql in migrations:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text(f"SELECT {column} FROM {table} LIMIT 1"))
+                # Column exists, nothing to do
+        except Exception:
+            # Column doesn't exist, add it
+            try:
+                with engine.connect() as conn:
+                    conn.execute(text(sql))
+                    conn.commit()
+                    logger.info(f"Migration: added column {table}.{column}")
+            except Exception as e:
+                logger.warning(f"Migration skipped ({table}.{column}): {e}")

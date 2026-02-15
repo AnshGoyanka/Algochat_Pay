@@ -71,3 +71,37 @@ keys/
 wallets/
 *.key
 *.pem
+
+# Workspace / IDE project files
+*.code-workspace
+
+# Utility/debug scripts (keep locally, don't push)
+check_*.py
+fix_*.py
+assign_*.py
+reseed_*.py
+verify_*.sql
+migration_*.sql
+setup_*.ps1
+start_ngrok.bat
+test_*.py
+!tests/
+
+# Extra documentation (README + HACKATHON_SUBMISSION are enough)
+docs/
+scripts/
+COMMITMENT_FEATURE_GUIDE.md
+CONVERSATIONAL_GUIDE.md
+DEMO_CONTROL_*.md
+DEMO_INTELLIGENCE*.md
+DEMO_QUICKSTART.md
+DEMO_QUICK_REFERENCE.txt
+IMPLEMENTATION_SUMMARY.md
+NOTIFICATIONS_GUIDE.md
+PRODUCTION_UPGRADES.md
+PROJECT_STRUCTURE.md
+QUICKSTART.md
+QUICK_ADD_GUIDE.md
+TELEGRAM_QUICKSTART.md
+TELEGRAM_SETUP.md
+TICKETS_FUNDRAISING_IMPLEMENTATION.md

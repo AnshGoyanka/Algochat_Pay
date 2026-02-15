@@ -12,6 +12,7 @@ from backend.database import get_db
 from backend.config import settings
 from backend.services import wallet_service, payment_service, ticket_service, fund_service
 from backend.services.split_service import split_service
+from backend.services.contact_service import contact_service
 from backend.services.nl_mapper import nl_mapper
 from bot.command_parser import command_parser, CommandType, ParsedCommand
 from bot.response_templates import response_templates
@@ -196,6 +197,22 @@ class TelegramBot:
             elif cmd.type == CommandType.DEMO_STATS:
                 return self._handle_demo_stats(db)
             
+            # Contacts
+            elif cmd.type == CommandType.SAVE_CONTACT:
+                return self._handle_save_contact(db, user_phone, cmd.params)
+            
+            elif cmd.type == CommandType.REMOVE_CONTACT:
+                return self._handle_remove_contact(db, user_phone, cmd.params)
+            
+            elif cmd.type == CommandType.MY_CONTACTS:
+                return self._handle_my_contacts(db, user_phone)
+            
+            elif cmd.type == CommandType.SET_NAME:
+                return self._handle_set_name(db, user_phone, cmd.params)
+            
+            elif cmd.type == CommandType.PAY_NAME:
+                return self._handle_pay_by_name(db, user_phone, cmd.params)
+            
             else:
                 return self.templates.unknown_command(message_text)
         
@@ -257,6 +274,82 @@ class TelegramBot:
             transaction.payment_ref,
             merchant_name
         )
+    
+    def _handle_pay_by_name(self, db: Session, sender_phone: str, params: dict) -> str:
+        """Handle payment by contact name"""
+        name = params.get("name", "")
+        amount = params.get("amount")
+        
+        if not name or not amount:
+            return "\u274c Please specify a name and amount. Example: `pay ansh 50`"
+        
+        amount = float(amount)
+        
+        # Resolve name to phone number
+        resolved_phone, display_info = contact_service.resolve_name(db, sender_phone, name)
+        
+        if not resolved_phone:
+            return display_info
+        
+        # Execute payment using resolved phone
+        transaction = payment_service.send_payment(
+            db=db,
+            sender_phone=sender_phone,
+            receiver_phone=resolved_phone,
+            amount=amount,
+            note=f"Telegram payment to {name}"
+        )
+        
+        new_balance = wallet_service.get_balance(db, sender_phone)
+        
+        return self.templates.payment_success(
+            resolved_phone,
+            amount,
+            transaction.tx_id,
+            new_balance,
+            transaction.payment_ref,
+            name.title()
+        )
+    
+    def _handle_save_contact(self, db: Session, phone: str, params: dict) -> str:
+        """Handle save contact command"""
+        nickname = params.get("nickname", "")
+        contact_phone = params.get("contact_phone", "")
+        
+        try:
+            contact = contact_service.save_contact(db, phone, nickname, contact_phone)
+            return self.templates.contact_saved(contact.nickname, contact.contact_phone)
+        except ValueError as e:
+            return f"\u274c {str(e)}"
+    
+    def _handle_remove_contact(self, db: Session, phone: str, params: dict) -> str:
+        """Handle remove contact command"""
+        nickname = params.get("nickname", "")
+        
+        removed = contact_service.remove_contact(db, phone, nickname)
+        if removed:
+            return self.templates.contact_removed(nickname)
+        else:
+            return f"\u274c No contact named *\"{nickname}\"* found."
+    
+    def _handle_my_contacts(self, db: Session, phone: str) -> str:
+        """Handle list contacts command"""
+        contacts = contact_service.list_contacts(db, phone)
+        return self.templates.contact_list(contacts)
+    
+    def _handle_set_name(self, db: Session, phone: str, params: dict) -> str:
+        """Handle set display name command"""
+        name = params.get("name", "")
+        
+        if not name:
+            return "\u274c Please provide a name. Example: `set name Ansh`"
+        
+        try:
+            wallet_service.get_or_create_wallet(db, phone)
+            user = contact_service.set_display_name(db, phone, name)
+            return self.templates.name_set(user.display_name)
+        except ValueError as e:
+            return f"\u274c {str(e)}"
     
     def _handle_split(self, db: Session, initiator_phone: str, params: dict) -> str:
         """Handle bill split command"""

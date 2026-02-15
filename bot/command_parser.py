@@ -38,6 +38,12 @@ class CommandType(str, Enum):
     ADD_PARTICIPANT = "add_participant"
     RELIABILITY = "reliability"
     MY_COMMITMENTS = "my_commitments"
+    # Contacts
+    SAVE_CONTACT = "save_contact"
+    REMOVE_CONTACT = "remove_contact"
+    MY_CONTACTS = "my_contacts"
+    SET_NAME = "set_name"
+    PAY_NAME = "pay_name"
     UNKNOWN = "unknown"
 
 
@@ -154,6 +160,29 @@ class CommandParser:
             r"^my commitments?$",
             r"^/commitments?$",
             r"^commitments?$",
+        ],
+        # Contacts
+        CommandType.SAVE_CONTACT: [
+            r"^save\s+(.+?)\s+as\s+(\+\d+)$",  # save ansh as +919876543210
+            r"^add contact\s+(.+?)\s+(\+\d+)$",  # add contact ansh +919876543210
+        ],
+        CommandType.REMOVE_CONTACT: [
+            r"^remove\s+contact\s+(.+)$",  # remove contact ansh
+            r"^delete\s+contact\s+(.+)$",  # delete contact ansh
+        ],
+        CommandType.MY_CONTACTS: [
+            r"^(?:my\s+)?contacts$",  # contacts / my contacts
+            r"^(?:show|list)\s+contacts$",  # show contacts
+        ],
+        CommandType.SET_NAME: [
+            r"^(?:set|change)\s+(?:my\s+)?name\s+(?:to\s+)?(.+)$",  # set name to Ansh / set my name Ansh
+            r"^my\s+name\s+is\s+(.+)$",  # my name is Ansh
+            r"^call\s+me\s+(.+)$",  # call me Ansh
+        ],
+        CommandType.PAY_NAME: [
+            r"^pay\s+(.+?)\s+(\d+\.?\d*)(?:\s+algo)?$",  # pay ansh 50
+            r"^send\s+(\d+\.?\d*)\s+(?:algo\s+)?to\s+([a-zA-Z][a-zA-Z\s]*)$",  # send 50 to ansh
+            r"^pay\s+(\d+\.?\d*)\s+(?:algo\s+)?to\s+([a-zA-Z][a-zA-Z\s]*)$",  # pay 50 to ansh
         ],
     }
     
@@ -287,6 +316,39 @@ class CommandParser:
                 "phone": match.group(2)
             }
         
+        # Contacts
+        elif command_type == CommandType.SAVE_CONTACT:
+            return {
+                "nickname": match.group(1).strip(),
+                "contact_phone": match.group(2)
+            }
+        
+        elif command_type == CommandType.REMOVE_CONTACT:
+            return {
+                "nickname": match.group(1).strip()
+            }
+        
+        elif command_type == CommandType.SET_NAME:
+            return {
+                "name": match.group(1).strip()
+            }
+        
+        elif command_type == CommandType.PAY_NAME:
+            # Determine which pattern matched
+            groups = match.groups()
+            try:
+                # Try first group as amount (patterns 2 & 3: send/pay <amount> to <name>)
+                amount = float(groups[0])
+                name = groups[1].strip()
+            except ValueError:
+                # First pattern: pay <name> <amount>
+                name = groups[0].strip()
+                amount = float(groups[1])
+            return {
+                "name": name,
+                "amount": amount
+            }
+        
         return {}
     
     def _extract_phone_numbers(self, text: str) -> List[str]:
@@ -308,9 +370,18 @@ class CommandParser:
 
 💸 *Payments*
 • `pay 50 ALGO to +91XXXXXXXXXX` - Send ALGO
+• `pay ansh 50` - Pay by name ✨ NEW!
+• `send 50 to ansh` - Send by name ✨ NEW!
 • `split 400 ALGO dinner with +91XXX +91YYY` - Split bill
 • `pay split 1` - Pay your share of split bill
 • `my splits` - View pending split bills
+
+📒 *Contacts* ✨ NEW!
+• `save ansh as +919876543210` - Save a contact
+• `my contacts` - View saved contacts
+• `remove contact ansh` - Remove a contact
+• `set name Ansh` - Set your display name
+• `my name is Ansh` - Set your display name
 
 🔒 *Payment Commitments* ✨ NEW!
 • `make a goa trip` - Create via conversation (easy!)

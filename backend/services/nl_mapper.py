@@ -83,7 +83,7 @@ class NaturalLanguageMapper:
                 0.85
             ),
             
-            # PAY command patterns
+            # PAY command patterns (phone number based)
             (
                 r'\b(?:send|pay|transfer)\s+(\d+(?:\.\d+)?)\s+(?:algo|algos?)\s+to\s+([\+\d\s\-\(\)]+)',
                 'PAY',
@@ -102,6 +102,49 @@ class NaturalLanguageMapper:
                 {'amount': 1, 'phone': 2},
                 0.9
             ),
+            
+            # PAY_NAME command patterns (name-based)
+            (
+                r'\b(?:send|pay|transfer)\s+(\d+(?:\.\d+)?)\s+(?:algo|algos?\s+)?to\s+([a-zA-Z][a-zA-Z\s]*?)\s*$',
+                'PAY_NAME',
+                {'amount': 1, 'name': 2},
+                0.9
+            ),
+            (
+                r'\bpay\s+([a-zA-Z][a-zA-Z\s]*?)\s+(\d+(?:\.\d+)?)\s*(?:algo|algos?)?\s*$',
+                'PAY_NAME',
+                {'name': 1, 'amount': 2},
+                0.85
+            ),
+            
+            # SAVE_CONTACT command patterns
+            (
+                r'\bsave\s+([a-zA-Z][a-zA-Z\s]*?)\s+as\s+(\+\d{10,15})',
+                'SAVE_CONTACT',
+                {'nickname': 1, 'contact_phone': 2},
+                1.0
+            ),
+            
+            # SET_NAME command patterns
+            (
+                r'\b(?:set|change)\s+(?:my\s+)?name\s+(?:to\s+)?([a-zA-Z][a-zA-Z\s]*)',
+                'SET_NAME',
+                {'name': 1},
+                1.0
+            ),
+            (
+                r'\bmy\s+name\s+is\s+([a-zA-Z][a-zA-Z\s]*)',
+                'SET_NAME',
+                {'name': 1},
+                0.95
+            ),
+            (
+                r'\bcall\s+me\s+([a-zA-Z][a-zA-Z\s]*)',
+                'SET_NAME',
+                {'name': 1},
+                0.9
+            ),
+            
             
             # EVENTS command patterns
             (

@@ -11,6 +11,7 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     phone_number = Column(String(20), unique=True, index=True, nullable=False)
+    display_name = Column(String(50), nullable=True, index=True)  # Optional name for contact lookup
     wallet_address = Column(String(58), unique=True, index=True, nullable=False)
     encrypted_private_key = Column(String(500), nullable=False)  # AES encrypted
     is_active = Column(Boolean, default=True)
@@ -25,6 +26,7 @@ class User(Base):
         return {
             "id": self.id,
             "phone_number": self.phone_number,
+            "display_name": self.display_name,
             "wallet_address": self.wallet_address,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None

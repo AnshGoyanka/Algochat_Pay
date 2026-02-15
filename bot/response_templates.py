@@ -633,6 +633,71 @@ _Reply 'yes' to confirm or 'no' to cancel_
     def conversation_timeout() -> str:
         """Conversation timed out"""
         return "⏱️ Conversation timed out. Start over by saying 'create [title]' or 'make a [title] trip'."
+    
+    # ==================== Contact Templates ====================
+    
+    @staticmethod
+    def contact_saved(nickname: str, contact_phone: str) -> str:
+        """Contact saved successfully"""
+        return f"""
+✅ *Contact Saved!*
+
+📒 Name: *{nickname}*
+📞 Phone: {contact_phone}
+
+Now you can pay by name:
+• `pay {nickname} 50` - Send 50 ALGO
+• `send 50 to {nickname}` - Same thing!
+
+💡 View all contacts: `my contacts`
+        """.strip()
+    
+    @staticmethod
+    def contact_removed(nickname: str) -> str:
+        """Contact removed"""
+        return f"✅ Contact *\"{nickname}\"* has been removed."
+    
+    @staticmethod
+    def contact_list(contacts) -> str:
+        """List all saved contacts"""
+        if not contacts:
+            return """
+📒 *Your Contacts*
+
+No contacts saved yet.
+
+💡 Save a contact:
+`save ansh as +919876543210`
+            """.strip()
+        
+        contact_lines = "\n".join([
+            f"  • *{c.nickname}* → {c.contact_phone}"
+            for c in contacts
+        ])
+        
+        return f"""
+📒 *Your Contacts* ({len(contacts)})
+
+{contact_lines}
+
+💡 *Quick actions:*
+• `pay <name> <amount>` - Pay by name
+• `save <name> as <phone>` - Add contact
+• `remove contact <name>` - Remove contact
+        """.strip()
+    
+    @staticmethod
+    def name_set(display_name: str) -> str:
+        """Display name set successfully"""
+        return f"""
+✅ *Display Name Set!*
+
+👤 Your name: *{display_name}*
+
+Others can now find you by name and pay you easily!
+
+💡 Example: They can say `pay {display_name.lower()} 50`
+        """.strip()
 
 
 # Global instance
