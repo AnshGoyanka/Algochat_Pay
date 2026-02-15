@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str
     DB_ECHO: bool = False
+    USE_SQLITE_FALLBACK: bool = True  # Use SQLite if PostgreSQL fails
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -40,6 +41,10 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str
     TWILIO_WHATSAPP_NUMBER: str
     TWILIO_WEBHOOK_URL: str
+    
+    # Telegram
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_WEBHOOK_URL: str = ""
     
     # API
     API_V1_PREFIX: str = "/api/v1"

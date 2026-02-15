@@ -6,6 +6,7 @@ import logging
 import secrets
 from datetime import datetime
 from backend.models.ticket import Ticket
+from backend.models.event import Event
 from backend.algorand.client import algorand_client
 from backend.services.wallet_service import wallet_service
 
@@ -48,7 +49,7 @@ class TicketService:
         
         try:
             # Create NFT on Algorand
-            asset_id = algorand_client.create_nft_asset(
+            nft_result = algorand_client.create_nft_asset(
                 creator_private_key=buyer_private_key,
                 asset_name=f"{event_name} Ticket",
                 unit_name="TIX",
@@ -56,12 +57,16 @@ class TicketService:
                 metadata_url=f"https://algochat.app/tickets/{ticket_number}"
             )
             
+            asset_id = nft_result["asset_id"]
+            tx_id = nft_result["tx_id"]
+            
             # Create ticket record
             ticket = Ticket(
                 event_name=event_name,
                 owner_phone=buyer_phone,
                 owner_address=buyer.wallet_address,
                 asset_id=asset_id,
+                tx_id=tx_id,
                 ticket_number=ticket_number,
                 ticket_metadata=str(ticket_metadata) if ticket_metadata else None
             )
@@ -178,6 +183,155 @@ class TicketService:
         prefix = event_name[:3].upper()
         random_part = secrets.token_hex(6).upper()
         return f"{prefix}-{random_part}"
+    
+    def list_events(self, db: Session, category: str = None) -> list[Event]:
+        """
+        List available events (limited to 5 active events)
+        
+        Args:
+            db: Database session
+            category: Optional category filter
+        
+        Returns:
+            List of active Event records (max 5)
+        """
+        query = db.query(Event).filter(Event.is_active == True)
+        
+        if category:
+            query = query.filter(Event.category == category)
+        
+        # Limit to 5 events, sorted by date
+        return query.order_by(Event.event_date.asc()).limit(5).all()
+    
+    def get_event_by_id(self, db: Session, event_id: int) -> Event:
+        """
+        Get event by ID
+        
+        Args:
+            db: Database session
+            event_id: Event ID
+        
+        Returns:
+            Event record or None
+        """
+        return db.query(Event).filter(
+            Event.id == event_id,
+            Event.is_active == True
+        ).first()
+    
+    def get_event_by_name(self, db: Session, event_name: str) -> Event:
+        """
+        Get event by exact or partial name match
+        
+        Args:
+            db: Database session
+            event_name: Event name (case insensitive)
+        
+        Returns:
+            Event record or None
+        """
+        # Try exact match first
+        event = db.query(Event).filter(
+            Event.name.ilike(event_name),
+            Event.is_active == True
+        ).first()
+        
+        if event:
+            return event
+        
+        # Try partial match
+        event = db.query(Event).filter(
+            Event.name.ilike(f"%{event_name}%"),
+            Event.is_active == True
+        ).first()
+        
+        return event
+    
+    def purchase_ticket(
+        self,
+        db: Session,
+        buyer_phone: str,
+        event_name: str = None,
+        event_id: int = None
+    ) -> dict:
+        """
+        Purchase ticket for an event (integrates with Event model)
+        
+        Args:
+            db: Database session
+            buyer_phone: Buyer's phone number
+            event_name: Event name (optional)
+            event_id: Event ID (optional)
+        
+        Returns:
+            Dict with ticket details and event info
+        """
+        # Get event by ID or name
+        if event_id:
+            event = self.get_event_by_id(db, event_id)
+            if not event:
+                raise ValueError(f"Event not found with ID: {event_id}")
+        elif event_name:
+            event = self.get_event_by_name(db, event_name)
+            if not event:
+                raise ValueError(f"Event not found: {event_name}")
+        else:
+            raise ValueError("Either event_name or event_id must be provided")
+        
+        # Check availability
+        if event.is_sold_out:
+            raise ValueError(f"{event.name} is sold out!")
+        
+        # Get buyer wallet
+        buyer, _ = wallet_service.get_or_create_wallet(db, buyer_phone)
+        
+        # Check buyer balance
+        buyer_balance = algorand_client.get_balance(buyer.wallet_address)
+        if buyer_balance < event.ticket_price + 0.001:
+            raise ValueError(f"Insufficient balance. Need {event.ticket_price} ALGO + fees")
+        
+        # Get buyer's private key
+        buyer_private_key = wallet_service.get_private_key(db, buyer_phone)
+        
+        try:
+            # Create ticket metadata
+            ticket_metadata = {
+                "event_name": event.name,
+                "venue": event.venue,
+                "date": event.event_date.isoformat() if event.event_date else None,
+                "price": event.ticket_price,
+                "category": event.category
+            }
+            
+            # Create ticket NFT
+            ticket = self.create_ticket(
+                db=db,
+                event_name=event.name,
+                buyer_phone=buyer_phone,
+                ticket_metadata=ticket_metadata
+            )
+            
+            # Increment tickets sold
+            event.tickets_sold += 1
+            db.commit()
+            
+            logger.info(f"Ticket purchased: {event.name} by {buyer_phone}")
+            
+            return {
+                "success": True,
+                "ticket_number": ticket.ticket_number,
+                "event_name": event.name,
+                "venue": event.venue,
+                "event_date": event.event_date.isoformat() if event.event_date else None,
+                "ticket_price": event.ticket_price,
+                "asset_id": ticket.asset_id,
+                "tx_id": ticket.tx_id,
+                "remaining_tickets": event.tickets_available
+            }
+            
+        except Exception as e:
+            logger.error(f"Ticket purchase failed: {e}")
+            raise
 
 
 # Global service instance

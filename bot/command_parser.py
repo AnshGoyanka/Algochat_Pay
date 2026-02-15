@@ -13,17 +13,31 @@ logger = logging.getLogger(__name__)
 class CommandType(str, Enum):
     """Supported bot commands"""
     HELP = "help"
+    MENU = "menu"
     BALANCE = "balance"
     PAY = "pay"
     SPLIT = "split"
+    PAY_SPLIT = "pay_split"
+    VIEW_SPLIT = "view_split"
+    MY_SPLITS = "my_splits"
     CREATE_FUND = "create_fund"
     CONTRIBUTE = "contribute"
     VIEW_FUND = "view_fund"
+    LIST_FUNDS = "list_funds"
     BUY_TICKET = "buy_ticket"
     VERIFY_TICKET = "verify_ticket"
     MY_TICKETS = "my_tickets"
+    LIST_EVENTS = "list_events"
     HISTORY = "history"
     DEMO_STATS = "demo_stats"
+    # Payment Commitments
+    CREATE_COMMITMENT = "create_commitment"
+    COMMIT_FUNDS = "commit_funds"
+    VIEW_COMMITMENT = "view_commitment"
+    CANCEL_COMMITMENT = "cancel_commitment"
+    ADD_PARTICIPANT = "add_participant"
+    RELIABILITY = "reliability"
+    MY_COMMITMENTS = "my_commitments"
     UNKNOWN = "unknown"
 
 
@@ -60,6 +74,15 @@ class CommandParser:
         CommandType.SPLIT: [
             r"^split\s+(\d+\.?\d*)\s+(?:algo\s+)?(.+?)\s+with\s+(.+)",
         ],
+        CommandType.PAY_SPLIT: [
+            r"^pay split\s+(\d+)$",
+        ],
+        CommandType.VIEW_SPLIT: [
+            r"^(?:view|show)\s+split\s+(\d+)$",
+        ],
+        CommandType.MY_SPLITS: [
+            r"^(?:my splits|splits)$",
+        ],
         CommandType.CREATE_FUND: [
             r"^create fund\s+(.+?)\s+goal\s+(\d+\.?\d*)\s+(?:algo)?",
         ],
@@ -70,14 +93,23 @@ class CommandParser:
         CommandType.VIEW_FUND: [
             r"^(?:view|show)\s+fund\s+(\d+)",
         ],
+        CommandType.LIST_FUNDS: [
+            r"^(?:list|show)\s+funds?$",
+            r"^funds?$",
+        ],
         CommandType.BUY_TICKET: [
-            r"^buy ticket\s+(.+)",
+            r"^buy ticket\s+(\d+)$",  # buy ticket 1
+            r"^buy ticket\s+(.+)",     # buy ticket EventName
         ],
         CommandType.VERIFY_TICKET: [
             r"^verify ticket\s+(.+)",
         ],
         CommandType.MY_TICKETS: [
             r"^(?:my tickets|tickets)$",
+        ],
+        CommandType.LIST_EVENTS: [
+            r"^(?:list|show)\s+events?$",
+            r"^events?$",
         ],
         CommandType.HISTORY: [
             r"^(?:history|transactions)$",
@@ -87,6 +119,41 @@ class CommandParser:
             r"^demo$",
             r"^stats$",
             r"^show stats$",
+        ],
+        # Payment Commitments
+        CommandType.CREATE_COMMITMENT: [
+            r"^lock create\s+(.+?)\s+(\d+\.?\d*)\s+(\d+)\s+(\d+)$",  # lock create "Goa Trip" 500 5 7
+            r"^/lock\s+create\s+(.+?)\s+(\d+\.?\d*)\s+(\d+)\s+(\d+)$",
+        ],
+        CommandType.COMMIT_FUNDS: [
+            r"^commit\s+(\d+)$",  # commit 123
+            r"^/commit\s+(\d+)$",
+            r"^lock\s+(\d+)$",
+        ],
+        CommandType.VIEW_COMMITMENT: [
+            r"^commitment\s+(\d+)$",  # commitment 123
+            r"^/commitment\s+(\d+)$",
+            r"^show commitment\s+(\d+)$",
+        ],
+        CommandType.CANCEL_COMMITMENT: [
+            r"^cancel\s+(\d+)$",  # cancel 123
+            r"^/cancel\s+(\d+)$",
+            r"^cancel commitment\s+(\d+)$",
+        ],
+        CommandType.ADD_PARTICIPANT: [
+            r"^add\s+(\d+)\s+(\+\d+)$",  # add 123 +919999999999
+            r"^/add\s+(\d+)\s+(\+\d+)$",
+        ],
+        CommandType.RELIABILITY: [
+            r"^reliability$",
+            r"^/reliability$",
+            r"^my reliability$",
+            r"^score$",
+        ],
+        CommandType.MY_COMMITMENTS: [
+            r"^my commitments?$",
+            r"^/commitments?$",
+            r"^commitments?$",
         ],
     }
     
@@ -164,13 +231,60 @@ class CommandParser:
             }
         
         elif command_type == CommandType.BUY_TICKET:
-            return {
-                "event_name": match.group(1).strip()
-            }
+            event_identifier = match.group(1).strip()
+            # Check if it's a number (event ID) or name
+            if event_identifier.isdigit():
+                return {
+                    "event_id": int(event_identifier)
+                }
+            else:
+                return {
+                    "event_name": event_identifier
+                }
         
         elif command_type == CommandType.VERIFY_TICKET:
             return {
                 "ticket_number": match.group(1).strip().upper()
+            }
+        
+        elif command_type == CommandType.PAY_SPLIT:
+            return {
+                "split_bill_id": int(match.group(1))
+            }
+        
+        elif command_type == CommandType.VIEW_SPLIT:
+            return {
+                "split_bill_id": int(match.group(1))
+            }
+        
+        # Payment Commitments
+        elif command_type == CommandType.CREATE_COMMITMENT:
+            return {
+                "title": match.group(1).strip(),
+                "amount": float(match.group(2)),
+                "participants": int(match.group(3)),
+                "days": int(match.group(4))
+            }
+        
+        elif command_type == CommandType.COMMIT_FUNDS:
+            return {
+                "commitment_id": int(match.group(1))
+            }
+        
+        elif command_type == CommandType.VIEW_COMMITMENT:
+            return {
+                "commitment_id": int(match.group(1))
+            }
+        
+        elif command_type == CommandType.CANCEL_COMMITMENT:
+            return {
+                "commitment_id": int(match.group(1))
+            }
+        
+        elif command_type == CommandType.ADD_PARTICIPANT:
+            return {
+                "commitment_id": int(match.group(1)),
+                "phone": match.group(2)
             }
         
         return {}
@@ -195,19 +309,33 @@ class CommandParser:
 💸 *Payments*
 • `pay 50 ALGO to +91XXXXXXXXXX` - Send ALGO
 • `split 400 ALGO dinner with +91XXX +91YYY` - Split bill
+• `pay split 1` - Pay your share of split bill
+• `my splits` - View pending split bills
+
+🔒 *Payment Commitments* ✨ NEW!
+• `make a goa trip` - Create via conversation (easy!)
+• `/lock create Trip 500 5 7` - Or use command
+• `/commit 1` - Lock your funds
+• `/status 1` - View commitment status
+• `/commitments` - Your active commitments
+• `/reliability` - Your payment reputation score
 
 🎫 *Event Tickets*
-• `buy ticket TechFest` - Purchase event ticket (NFT)
+• `list events` - See all upcoming events
+• `buy ticket TechFest 2026` - Purchase event ticket (NFT)
 • `my tickets` - View your tickets
 • `verify ticket TIX-ABC123` - Verify ticket authenticity
 
 🎯 *Fundraising*
+• `list funds` - See active campaigns
 • `create fund Trip goal 500 ALGO` - Start fundraising
 • `contribute 50 ALGO to fund 1` - Contribute to fund
 • `view fund 1` - Check fund details
 
 📊 *History*
 • `history` - View transaction history
+
+💡 *Pro Tip:* Just say "make a [title] trip" and I'll guide you!
 
 Need help? Just type `help` anytime!
         """.strip()

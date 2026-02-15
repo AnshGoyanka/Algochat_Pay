@@ -1,6 +1,6 @@
 """
 AlgoChat Pay - Main FastAPI Application
-Campus Wallet on WhatsApp powered by Algorand
+Campus Wallet on WhatsApp & Telegram powered by Algorand
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +11,7 @@ from backend.database import init_db
 from backend.utils.production_logging import ProductionLogger
 from backend.middleware import LoggingMiddleware, SecurityLoggingMiddleware
 from backend.security.security_utils import RateLimitMiddleware
-from bot import whatsapp_router
+from bot import whatsapp_router, telegram_router
 from backend.routes import health_router, metrics_router, admin_router, demo_router, freeze_router
 
 # Setup production logging
@@ -26,7 +26,7 @@ logger = ProductionLogger.get_logger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
-    description="Campus Wallet on WhatsApp - Powered by Algorand",
+    description="Campus Wallet on WhatsApp & Telegram - Powered by Algorand",
     version="1.0.0",
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None
@@ -48,6 +48,7 @@ app.add_middleware(RateLimitMiddleware)
 
 # Include routers
 app.include_router(whatsapp_router, tags=["WhatsApp"])
+app.include_router(telegram_router, tags=["Telegram"])
 app.include_router(health_router)
 app.include_router(metrics_router)
 app.include_router(admin_router)

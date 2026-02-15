@@ -143,7 +143,7 @@ class AlgorandClient:
         unit_name: str,
         total: int = 1,
         metadata_url: str = ""
-    ) -> int:
+    ) -> dict:
         """
         Create NFT as Algorand Standard Asset (ASA)
         
@@ -155,7 +155,7 @@ class AlgorandClient:
             metadata_url: IPFS or HTTP URL for metadata
         
         Returns:
-            Asset ID
+            Dict with asset_id and tx_id
         """
         try:
             creator_address = account.address_from_private_key(creator_private_key)
@@ -186,7 +186,7 @@ class AlgorandClient:
             asset_id = confirmed_txn["asset-index"]
             
             logger.info(f"Created NFT asset: {asset_id} ({asset_name})")
-            return asset_id
+            return {"asset_id": asset_id, "tx_id": tx_id}
             
         except Exception as e:
             logger.error(f"NFT creation failed: {e}")

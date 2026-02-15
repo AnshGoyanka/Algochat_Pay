@@ -37,6 +37,11 @@ class Transaction(Base):
     note = Column(String(500))  # Transaction memo
     split_group_id = Column(String(100))  # For bill splitting
     fund_id = Column(Integer)  # Link to fundraising pool
+    
+    # Privacy-enhanced fields
+    merchant_id = Column(String(20), index=True)  # Link to merchants table (M12345)
+    payment_ref = Column(String(20), index=True)   # Human-friendly payment ID (P67890)
+    
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     confirmed_at = Column(DateTime(timezone=True))
     

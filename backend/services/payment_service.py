@@ -9,6 +9,7 @@ from datetime import datetime
 from backend.models.transaction import Transaction, TransactionStatus, TransactionType
 from backend.algorand.client import algorand_client
 from backend.services.wallet_service import wallet_service
+from backend.services.merchant_service import merchant_service
 from backend.utils.demo_safety import safe_demo_operation
 from backend.utils.production_logging import event_logger
 
@@ -74,6 +75,13 @@ class PaymentService:
             receiver_phone=receiver_phone
         )
         
+        # Generate payment reference
+        payment_ref = merchant_service.generate_payment_ref()
+        
+        # Check if receiver is a merchant
+        merchant = merchant_service.get_merchant_by_wallet(db, receiver.wallet_address)
+        merchant_id = merchant.merchant_id if merchant else None
+        
         # Create transaction record (pending)
         transaction = Transaction(
             sender_phone=sender_phone,
@@ -83,7 +91,9 @@ class PaymentService:
             amount=amount,
             transaction_type=TransactionType.SEND,
             status=TransactionStatus.PENDING,
-            note=note
+            note=note,
+            payment_ref=payment_ref,
+            merchant_id=merchant_id
         )
         
         db.add(transaction)
@@ -113,6 +123,20 @@ class PaymentService:
                 amount=amount
             )
             logger.info(f"Payment successful: {tx_id}")
+            
+            # Send notification to receiver
+            try:
+                from backend.services.notification_service import notification_service
+                notification_service.notify_payment_received(
+                    receiver_phone=receiver_phone,
+                    sender_phone=sender_phone,
+                    amount=amount,
+                    payment_ref=payment_ref,
+                    tx_id=tx_id
+                )
+            except Exception as notify_error:
+                logger.warning(f"Failed to send payment notification: {notify_error}")
+            
             return transaction
             
         except Exception as e:

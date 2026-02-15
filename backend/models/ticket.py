@@ -14,6 +14,7 @@ class Ticket(Base):
     owner_phone = Column(String(20), nullable=False)
     owner_address = Column(String(58), nullable=False)
     asset_id = Column(Integer, unique=True, nullable=False)  # Algorand ASA ID
+    tx_id = Column(String(100))  # Transaction ID for NFT creation
     ticket_number = Column(String(50), unique=True, nullable=False)
     is_valid = Column(Boolean, default=True)
     is_used = Column(Boolean, default=False)
@@ -30,8 +31,10 @@ class Ticket(Base):
             "event_name": self.event_name,
             "owner_phone": self.owner_phone,
             "asset_id": self.asset_id,
+            "tx_id": self.tx_id,
             "ticket_number": self.ticket_number,
             "is_valid": self.is_valid,
             "is_used": self.is_used,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
+

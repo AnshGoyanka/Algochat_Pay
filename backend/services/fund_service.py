@@ -9,6 +9,7 @@ from backend.models.fund import Fund, FundContribution
 from backend.models.transaction import Transaction, TransactionStatus, TransactionType
 from backend.algorand.client import algorand_client
 from backend.services.wallet_service import wallet_service
+from backend.services.merchant_service import merchant_service
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +145,13 @@ class FundService:
                 fund.is_goal_met = True
                 logger.info(f"Fund {fund.title} reached goal!")
             
+            # Generate payment reference
+            payment_ref = merchant_service.generate_payment_ref()
+            
+            # Check if fund has a merchant account
+            merchant = merchant_service.get_merchant_by_fund(db, fund_id)
+            merchant_id = merchant.merchant_id if merchant else None
+            
             # Create transaction record
             transaction = Transaction(
                 tx_id=tx_id,
@@ -156,6 +164,8 @@ class FundService:
                 status=TransactionStatus.CONFIRMED,
                 note=f"Fund contribution: {fund.title}",
                 fund_id=fund_id,
+                payment_ref=payment_ref,
+                merchant_id=merchant_id,
                 confirmed_at=datetime.utcnow()
             )
             
@@ -164,6 +174,21 @@ class FundService:
             db.refresh(contribution)
             
             logger.info(f"Contribution {amount} ALGO to fund {fund_id}")
+            
+            # Send notification to fund creator
+            try:
+                from backend.services.notification_service import notification_service
+                notification_service.notify_fund_contribution(
+                    creator_phone=fund.creator_phone,
+                    contributor_phone=contributor_phone,
+                    amount=amount,
+                    fund_title=fund.title,
+                    total_raised=fund.current_amount,
+                    goal_amount=fund.goal_amount
+                )
+            except Exception as notif_error:
+                logger.warning(f"Failed to send fund contribution notification: {notif_error}")
+            
             return contribution
             
         except Exception as e:
@@ -215,8 +240,10 @@ class FundService:
         }
     
     def list_active_funds(self, db: Session) -> list[Fund]:
-        """Get all active fundraising pools"""
-        return db.query(Fund).filter(Fund.is_active == True).all()
+        """Get active fundraising campaigns (limited to 5 most urgent)"""
+        return db.query(Fund).filter(
+            Fund.is_active == True
+        ).order_by(Fund.deadline.asc()).limit(5).all()
     
     def close_fund(self, db: Session, fund_id: int) -> Fund:
         """
